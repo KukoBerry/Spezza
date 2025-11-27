@@ -138,34 +138,3 @@ class MainInfo extends StatelessWidget {
     );
   }
 }
-
-class Application extends StatelessWidget {
-  const Application({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Spezza',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
-        ),
-      ),
-      home: const MainPage(),
-    );
-  }
-}
-
-class MainPage extends StatelessWidget {
-  const MainPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Spezza')),
-      body: Center(child: Text('Main Page')),
-    );
-  }
-}
