@@ -18,9 +18,7 @@ class GoalExpense {
       id: map['id'].toString(),
       goal: (map['goalexpense'] as num).toDouble(),
       amountSpent: (map['expense'] as num).toDouble(),
-      periodInDays: map['days_period'] == null
-    ? 0
-    : map['days_period'] as int,
+      periodInDays: map['days_period'] == null ? 0 : map['days_period'] as int,
       createdAt: DateTime.parse(map['created_at'] as String),
     );
   }
