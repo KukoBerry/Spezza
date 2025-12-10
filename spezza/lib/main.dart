@@ -21,9 +21,9 @@ class MyApp extends ConsumerWidget {
     return MaterialApp(
       title: 'Spezza',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.green,
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.blue,
+          backgroundColor: Colors.green,
           foregroundColor: Colors.white,
         ),
       ),
