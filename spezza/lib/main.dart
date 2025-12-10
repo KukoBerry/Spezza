@@ -4,7 +4,6 @@ import 'package:spezza/shared/repositories/goal_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spezza/shared/supabase_config/supabase_credentials.dart';
-import 'package:spezza/shared/repositories/goal_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
