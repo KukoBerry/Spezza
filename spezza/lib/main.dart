@@ -4,7 +4,6 @@ import 'package:spezza/shared/repositories/goal_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spezza/shared/supabase_config/supabase_credentials.dart';
-import 'package:spezza/shared/repositories/goal_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,9 +21,9 @@ class MyApp extends ConsumerWidget {
     return MaterialApp(
       title: 'Spezza',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.green,
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.blue,
+          backgroundColor: Colors.green,
           foregroundColor: Colors.white,
         ),
       ),
