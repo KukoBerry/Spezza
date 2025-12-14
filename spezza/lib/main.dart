@@ -23,9 +23,31 @@ class MyApp extends ConsumerWidget {
       title: 'Spezza',
       theme: ThemeData(
         primarySwatch: Colors.green,
+        scaffoldBackgroundColor: Colors.white,
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.green,
           foregroundColor: Colors.white,
+        ),
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(
+            color: Colors.black,
+          )
+        ),
+      ),
+      darkTheme: ThemeData(
+        primarySwatch: Colors.green,
+        scaffoldBackgroundColor: Colors.black,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.green,
+          foregroundColor: Colors.white,
+          iconTheme: IconThemeData(
+            color: Colors.white,
+          ),
+        ),
+        textTheme: const TextTheme(
+            bodyMedium: TextStyle(
+              color: Colors.white,
+            )
         ),
       ),
       home: Scaffold(
