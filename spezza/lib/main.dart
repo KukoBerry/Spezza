@@ -11,7 +11,7 @@ void main() async {
 
   await Function.apply(Supabase.initialize, [], supabaseOptions);
 
-  runApp(ProviderScope(child: MaterialApp(home: MyApp())));
+  runApp(ProviderScope(child: MyApp()));
 }
 
 class MyApp extends ConsumerWidget {
