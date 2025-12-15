@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:spezza/model/dto/goal_expense.dart';
 import 'package:spezza/shared/repositories/goal_repository.dart';
 import 'package:spezza/sidebar.dart';
+import 'package:spezza/theme_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spezza/shared/supabase_config/supabase_credentials.dart';
@@ -19,13 +20,17 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+
     return MaterialApp(
       title: 'Spezza',
+      themeMode: themeMode,
       theme: ThemeData(
-        primarySwatch: Colors.green,
+        colorSchemeSeed: const Color(0xFF008000),
+        brightness: Brightness.light,
         scaffoldBackgroundColor: Colors.white,
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.green,
+          backgroundColor:  Color(0xFF008000),
           foregroundColor: Colors.white,
         ),
         textTheme: const TextTheme(
@@ -35,21 +40,29 @@ class MyApp extends ConsumerWidget {
         ),
       ),
       darkTheme: ThemeData(
-        primarySwatch: Colors.green,
+        brightness: Brightness.dark,
+        colorSchemeSeed: const Color(0xFF008000),
         scaffoldBackgroundColor: Colors.black,
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.green,
+          backgroundColor:  Color(0xFF008000),
           foregroundColor: Colors.white,
-          iconTheme: IconThemeData(
-            color: Colors.white,
-          ),
+          iconTheme: IconThemeData(color: Colors.white),
         ),
+
+        drawerTheme: const DrawerThemeData(
+          backgroundColor: Colors.black,
+        ),
+
+        listTileTheme: const ListTileThemeData(
+          iconColor: Colors.white,
+          textColor: Colors.white,
+        ),
+
         textTheme: const TextTheme(
-            bodyMedium: TextStyle(
-              color: Colors.white,
-            )
+          bodyMedium: TextStyle(color: Colors.white),
         ),
       ),
+
       home: Scaffold(
         drawer: Sidebar(),
         appBar: AppBar(title: const Text('Spezza')),

@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spezza/theme_provider.dart';
+import 'package:spezza/view/screens/graphic_overview_screen.dart';
 
-class Sidebar extends StatelessWidget {
+class Sidebar extends ConsumerWidget {
   const Sidebar({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Drawer(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
@@ -13,18 +17,27 @@ class Sidebar extends StatelessWidget {
               accountName: Text('Fulano'),
               accountEmail: Text('fln.tal@mail.com'),
               decoration: BoxDecoration(
-                color: Colors.green
+                color: Color(0xFF008000)
               ),
           ),
           ListTile(
             leading: Icon(Icons.pie_chart),
             title: Text('Visão geral'),
-            onTap: () => print('Ou overview; Muda pra Gráficos Gerais'),
+            onTap: () {
+              Navigator.pop(context);
+
+              /*Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const GraphicOverviewScreen(),
+                ),
+              );*/
+            },
           ),
           ListTile(
             leading: Icon(Icons.nightlight_round),
             title: Text('Modo escuro'),
-            onTap: () => print('Faz toggle de modo escuro'),
+            onTap: () => ref.read(themeModeProvider.notifier).toggle(),
           ),
           Divider(),
           ListTile(
