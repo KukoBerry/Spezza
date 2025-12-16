@@ -1,23 +1,26 @@
 class Expense {
   final DateTime createdAt;
   final DateTime spentDate;
-  final String id;
+  final int id;
   final double value;
   final String? category;
   final String? name;
+  final int budgetId;
 
   Expense({
     required this.id,
     required this.value,
     required this.createdAt,
     required this.spentDate,
+    required this.budgetId,
     this.category,
     this.name,
   });
 
   factory Expense.fromMap(Map<String, dynamic> map) {
     return Expense(
-      id: map['id'].toString(),
+      id: map['id'] as int,
+      budgetId: map['budgetgoal_id'] as int,
       value: (map['value'] as num).toDouble(),
       createdAt: DateTime.parse(map['created_at'] as String).toLocal(),
       spentDate: DateTime.parse(map['when_spent'] as String).toLocal(),
