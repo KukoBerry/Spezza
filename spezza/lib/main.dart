@@ -5,6 +5,7 @@ import 'package:spezza/sidebar.dart';
 import 'package:spezza/theme_provider.dart';
 import 'package:spezza/view/widgets/budget_goal_info.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,7 +60,13 @@ class MyApp extends ConsumerWidget {
 
         textTheme: const TextTheme(bodyMedium: TextStyle(color: Colors.white)),
       ),
-
+      locale: const Locale('pt', 'BR'),
+      supportedLocales: const [Locale('pt', 'BR')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: Scaffold(
         drawer: Sidebar(),
         appBar: AppBar(title: const Text('Spezza')),
