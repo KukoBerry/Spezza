@@ -1,5 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../shared/repositories/expense_repository.dart';
+import 'package:spezza/shared/repositories/expense_repository.dart';
 import 'dto/expense.dart';
 
 part 'expense_model.g.dart';
@@ -19,12 +19,7 @@ class ExpenseModel {
       _expenses
         ..clear()
         ..addAll(result);
-    } catch (e) {
-      print('Error fetching goals: $e');
-    } finally {
-      print('Fetched ${_expenses.length} expenses.');
-
-    }
+    } catch (_) {}
   }
 
   List<Expense> filterByCategory({
@@ -46,14 +41,10 @@ class ExpenseModel {
   }
 
   Map<String, double> totalByCategoryAndDate({
+    required List<Expense> filteredExpenses,
     required DateTime startDate,
     required DateTime endDate,
   }) {
-    final filteredExpenses = filterByDate(
-      startDate: startDate,
-      endDate: endDate,
-    );
-
     final Map<String, double> totals = {};
 
     for (var expense in filteredExpenses) {

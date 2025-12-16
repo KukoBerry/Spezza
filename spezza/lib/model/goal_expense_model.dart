@@ -11,7 +11,7 @@ class GoalExpenseModel {
   GoalExpenseModel(this._repository);
 
   final List<GoalExpense> _goals = [];
-  final List<String> _categories = [];
+  final List<String> _categories = ['Tudo'];
 
   List<String> get categories => List.unmodifiable(_categories);
 
@@ -26,12 +26,7 @@ class GoalExpenseModel {
 
       setCategories(result);
 
-    } catch (e) {
-      print('Error fetching goals: $e');
-    }
-    finally {
-      print('Fetched ${_goals.length} goals.');
-    }
+    } catch (_) {}
   }
 
   void setCategories(List<GoalExpense> goals) {
