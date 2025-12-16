@@ -22,11 +22,12 @@ class ExpenseModel {
     } catch (e) {
       print('Error fetching goals: $e');
     } finally {
-      print('Fetched ${_expenses.length} goals.');
+      print('Fetched ${_expenses.length} expenses.');
+
     }
   }
 
-  List<Expense> filter({
+  List<Expense> filterByCategory({
     required DateTime startDate,
     required DateTime endDate,
     required String category,
@@ -43,6 +44,42 @@ class ExpenseModel {
       return startMatch && endMatch && categoryMatch;
     }).toList();
   }
+
+  Map<String, double> totalByCategoryAndDate({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) {
+    final filteredExpenses = filterByDate(
+      startDate: startDate,
+      endDate: endDate,
+    );
+
+    final Map<String, double> totals = {};
+
+    for (var expense in filteredExpenses) {
+      final category = expense.category ?? 'Geral';
+      totals[category] = (totals[category] ?? 0) + expense.value;
+    }
+
+    return totals;
+  }
+
+  List<Expense> filterByDate({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) {
+    return _expenses.where((expense) {
+      final spentDate = expense.spentDate;
+
+      final startMatch = !spentDate.isBefore(startDate);
+
+      final endMatch = !spentDate.isAfter(endDate);
+
+      return startMatch && endMatch;
+    }).toList();
+  }
+
+
 
   Map<String, double> totalExpensesByCategory() {
     final Map<String, double> totals = {};

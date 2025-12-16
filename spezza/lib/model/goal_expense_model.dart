@@ -11,8 +11,9 @@ class GoalExpenseModel {
   GoalExpenseModel(this._repository);
 
   final List<GoalExpense> _goals = [];
+  final List<String> _categories = [];
 
-
+  List<String> get categories => List.unmodifiable(_categories);
 
   List<GoalExpense> get goals => List.unmodifiable(_goals);
 
@@ -22,12 +23,27 @@ class GoalExpenseModel {
       _goals
         ..clear()
         ..addAll(result);
+
+      setCategories(result);
+
     } catch (e) {
       print('Error fetching goals: $e');
     }
     finally {
       print('Fetched ${_goals.length} goals.');
     }
+  }
+
+  void setCategories(List<GoalExpense> goals) {
+    final categorySet = <String>{'Tudo'};
+
+    for (var goal in goals) {
+      categorySet.add(goal.category!);
+    }
+
+    _categories
+      ..clear()
+      ..addAll(categorySet);
   }
 
   List<GoalExpense> filter({
