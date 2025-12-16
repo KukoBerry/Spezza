@@ -6,6 +6,7 @@ import 'package:spezza/theme_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spezza/shared/supabase_config/supabase_credentials.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,7 +63,15 @@ class MyApp extends ConsumerWidget {
           bodyMedium: TextStyle(color: Colors.white),
         ),
       ),
-
+      locale: const Locale('pt', 'BR'),
+      supportedLocales: const [
+        Locale('pt', 'BR'),
+      ],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: Scaffold(
         drawer: Sidebar(),
         appBar: AppBar(title: const Text('Spezza')),

@@ -26,12 +26,12 @@ class Sidebar extends ConsumerWidget {
             onTap: () {
               Navigator.pop(context);
 
-              /*Navigator.push(
+              Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => const GraphicOverviewScreen(),
                 ),
-              );*/
+              );
             },
           ),
           ListTile(
