@@ -11,11 +11,28 @@ class GoalRepository {
   GoalRepository(this._supabase);
 
   Future<List<GoalExpense>> fetchGoals() async {
-    final List<Map<String, dynamic>> results = await _supabase
+    final results = await _supabase
         .from('budgetgoals')
-        .select();
+        .select('''
+        *,
+        expenses:expenses!budgetgoal_id (
+          id,
+          budgetgoal_id,
+          value,
+          created_at,
+          when_spent,
+          category,
+          name
+        )
+      ''');
 
-    return results.map((map) => GoalExpense.fromMap(map)).toList();
+    print(results);
+
+    return results
+        .map<GoalExpense>(
+          (map) => GoalExpense.fromMap(map),
+    )
+        .toList();
   }
 }
 
