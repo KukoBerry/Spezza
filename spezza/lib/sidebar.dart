@@ -41,13 +41,13 @@ class Sidebar extends ConsumerWidget {
           ListTile(
             leading: Icon(Icons.settings),
             title: Text('Configurações'),
-            onTap: () => print('lol q configurações?'),
+            onTap: () => {},
           ),
           Divider(),
           ListTile(
             leading: Icon(Icons.logout),
             title: Text('Mudar de conta'),
-            onTap: () => print('Bem intuitivo'),
+            onTap: () => {},
           ),
         ],
       ),

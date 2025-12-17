@@ -65,8 +65,9 @@ class EditGoalButton extends StatelessWidget {
                       decoration: const InputDecoration(labelText: 'Valor'),
                       validator: (v) {
                         if (v == null || v.trim().isEmpty) return 'Required';
-                        if (double.tryParse(v.replaceAll(',', '.')) == null)
+                        if (double.tryParse(v.replaceAll(',', '.')) == null) {
                           return 'Invalid number';
+                        }
                         return null;
                       },
                     ),

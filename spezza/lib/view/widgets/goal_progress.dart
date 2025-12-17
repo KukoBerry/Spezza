@@ -1,46 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:spezza/model/dto/expense.dart';
+import 'package:intl/intl.dart';
 import 'package:spezza/model/dto/goal_expense.dart';
 import 'package:spezza/view/widgets/progress_bar.dart';
-import 'package:intl/intl.dart';
 import 'package:spezza/view_model/graphic_overview_view_model.dart';
 
 class GoalProgress extends ConsumerWidget {
   final List<GoalExpense> goals;
 
-  late double progressValue;
-  late double totalGoalValue;
-  late double totalExpenseValue;
-
-  GoalProgress(this.goals, {super.key}) {
-    calculateProgress();
-  }
-
-  void calculateProgress() {
-    double totalGoal = 0;
-    double totalExpense = 0;
-
-    for (var goal in goals) {
-      totalGoal += goal.goal;
-
-      double goalExpensesTotal = goal.expenses.fold(
-        0.0,
-        (previousValue, expense) => previousValue + expense.value,
-      );
-
-      totalExpense += goalExpensesTotal;
-    }
-
-    totalGoalValue = totalGoal;
-    totalExpenseValue = totalExpense;
-    progressValue = totalGoal == 0 ? 1 : (totalExpense / totalGoal);
-  }
+  const GoalProgress(this.goals, {super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final borderColor = isDark ? Colors.white70 : Colors.black26;
+
+    // compute totals here to keep the widget immutable
+    double totalGoal = 0.0;
+    double totalExpense = 0.0;
+    for (var goal in goals) {
+      totalGoal += goal.goal;
+      final goalExpensesTotal = goal.expenses.fold<double>(
+        0.0,
+        (previousValue, expense) => previousValue + expense.value,
+      );
+      totalExpense += goalExpensesTotal;
+    }
+
+    final progressValue = totalGoal == 0 ? 1.0 : (totalExpense / totalGoal);
 
     final spentByCategory = ref
         .read(graphicOverviewViewModelProvider.notifier)
@@ -76,8 +63,8 @@ class GoalProgress extends ConsumerWidget {
             Center(
               child: IconButton(
                 onPressed: () {
-                  ref.read(goalProgressExpandedProvider.notifier).state =
-                      !expanded;
+                  // use the notifier method instead of manipulating state directly
+                  ref.read(goalProgressExpandedProvider.notifier).toggle();
                 },
                 icon: AnimatedRotation(
                   turns: expanded ? 0.5 : 0.0,

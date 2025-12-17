@@ -31,7 +31,7 @@ class BudgetGoalInfo extends StatefulWidget {
 class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
   bool _isDeleted = false;
   double? _remoteSpent;
-  bool _loadingRemoteSpent = false;
+  // bool _loadingRemoteSpent = false;
   // Local editable state so UI updates immediately after editing
   double? _localGoal;
   String? _localCategory;
@@ -58,7 +58,7 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
   }
 
   Future<void> _fetchRemoteSpent(int id) async {
-    setState(() => _loadingRemoteSpent = true);
+    // setState(() => _loadingRemoteSpent = true);
     try {
       final supabase = Supabase.instance.client;
       final res = await supabase
@@ -76,11 +76,11 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
       if (!mounted) return;
       setState(() {
         _remoteSpent = sum;
-        _loadingRemoteSpent = false;
+        // _loadingRemoteSpent = false;
       });
     } catch (_) {
       if (!mounted) return;
-      setState(() => _loadingRemoteSpent = false);
+      // setState(() => _loadingRemoteSpent = false);
     }
   }
 
