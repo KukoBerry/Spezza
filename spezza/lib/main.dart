@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spezza/shared/supabase_config/supabase_credentials.dart';
 import 'package:spezza/sidebar.dart';
 import 'package:spezza/theme_provider.dart';
 import 'package:spezza/view/widgets/budget_goal_info.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,6 +15,25 @@ void main() async {
   final supabase = Supabase.instance.client;
 
   final data = await supabase.from('budgetgoals').select();
+
+  // Ensure deterministic ordering by created_at (oldest first). If created_at is missing or unparsable,
+  // those items will be placed at the end.
+  data.sort((a, b) {
+    dynamic va = (a['created_at'] ?? a['createdAt']);
+    dynamic vb = (b['created_at'] ?? b['createdAt']);
+    DateTime? da;
+    DateTime? db;
+    try {
+      if (va != null) da = DateTime.tryParse(va.toString());
+    } catch (_) {}
+    try {
+      if (vb != null) db = DateTime.tryParse(vb.toString());
+    } catch (_) {}
+    if (da == null && db == null) return 0;
+    if (da == null) return 1;
+    if (db == null) return -1;
+    return da.compareTo(db);
+  });
 
   runApp(ProviderScope(child: MyApp(initialData: data)));
 }

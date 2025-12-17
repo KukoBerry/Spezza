@@ -32,6 +32,10 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
   bool _isDeleted = false;
   double? _remoteSpent;
   bool _loadingRemoteSpent = false;
+  // Local editable state so UI updates immediately after editing
+  double? _localGoal;
+  String? _localCategory;
+  String? _localName;
 
   @override
   void initState() {
@@ -46,6 +50,22 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
       idInt = idVal;
     } else if (idVal is String) {
       idInt = int.tryParse(idVal);
+    }
+    // initialize local display values from provided data
+    if (widget.goal != null) {
+      _localGoal = widget.goal!.goal;
+      _localCategory = widget.goal!.category;
+      _localName = widget.goal!.name;
+    } else if (widget.data != null) {
+      final src = widget.data!;
+      final parsedGoal = src['goalexpense'] ?? src['goal'];
+      if (parsedGoal != null) {
+        try {
+          _localGoal = (parsedGoal as num).toDouble();
+        } catch (_) {}
+      }
+      _localCategory = src['category']?.toString();
+      _localName = src['name']?.toString();
     }
     if (idInt != null) _fetchRemoteSpent(idInt);
   }
@@ -125,11 +145,15 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
     }
 
     final createdAt = widget.goal?.createdAt ?? _parseCreatedAt(src);
-    final goalAmount = widget.goal?.goal ?? _parseGoal(src);
+    final goalAmount = _localGoal ?? widget.goal?.goal ?? _parseGoal(src);
     final days = widget.goal?.periodInDays ?? _parseDays(src) ?? 0;
     final category =
-        widget.goal?.category ?? _parseString(src, 'category') ?? '-';
-    final name = widget.goal?.name ?? _parseString(src, 'name') ?? '-';
+        _localCategory ??
+        widget.goal?.category ??
+        _parseString(src, 'category') ??
+        '-';
+    final name =
+        _localName ?? widget.goal?.name ?? _parseString(src, 'name') ?? '-';
     final id = widget.goal?.id ?? (src['id'].toString());
 
     // Build UI to match provided design: rounded green card, date range and percent on top,
@@ -247,6 +271,148 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
                     Text(
                       '${(percent * 100).round()}%',
                       style: const TextStyle(color: Colors.white, fontSize: 12),
+                    ),
+                    const SizedBox(width: 8),
+                    // edit button
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      icon: const Icon(
+                        Icons.edit,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                      onPressed: () async {
+                        final goalController = TextEditingController(
+                          text: (goalAmount ?? 0).toString(),
+                        );
+                        final categoryController = TextEditingController(
+                          text: category == '-' ? '' : category,
+                        );
+                        final nameController = TextEditingController(
+                          text: name == '-' ? '' : name,
+                        );
+                        final formKey = GlobalKey<FormState>();
+
+                        await showDialog<void>(
+                          context: context,
+                          builder: (dialogCtx) {
+                            return AlertDialog(
+                              title: const Text('Edit goal'),
+                              content: Form(
+                                key: formKey,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    TextFormField(
+                                      controller: goalController,
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                            decimal: true,
+                                          ),
+                                      decoration: const InputDecoration(
+                                        labelText: 'Goal amount',
+                                      ),
+                                      validator: (v) {
+                                        if (v == null || v.trim().isEmpty) {
+                                          return 'Required';
+                                        }
+                                        if (double.tryParse(
+                                              v.replaceAll(',', '.'),
+                                            ) ==
+                                            null) {
+                                          return 'Invalid number';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                    TextFormField(
+                                      controller: categoryController,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Category',
+                                      ),
+                                    ),
+                                    TextFormField(
+                                      controller: nameController,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Name',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(dialogCtx).pop(),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    if (!formKey.currentState!.validate()) {
+                                      return;
+                                    }
+
+                                    final parsedGoal =
+                                        double.tryParse(
+                                          goalController.text.replaceAll(
+                                            ',',
+                                            '.',
+                                          ),
+                                        ) ??
+                                        0.0;
+                                    final newCategory = categoryController.text
+                                        .trim();
+                                    final newName = nameController.text.trim();
+
+                                    // determine id as int
+                                    final idVal = widget.goal?.id ?? src['id'];
+                                    int? idInt;
+                                    if (idVal is int) {
+                                      idInt = idVal;
+                                    } else if (idVal is String) {
+                                      idInt = int.tryParse(idVal);
+                                    }
+                                    if (idInt == null) return;
+
+                                    // choose DB key name for goal
+                                    final goalKey =
+                                        src.containsKey('goalexpense')
+                                        ? 'goalexpense'
+                                        : 'goal';
+
+                                    // update UI immediately
+                                    setState(() {
+                                      _localGoal = parsedGoal;
+                                      _localCategory = newCategory.isEmpty
+                                          ? null
+                                          : newCategory;
+                                      _localName = newName.isEmpty
+                                          ? null
+                                          : newName;
+                                    });
+                                    // close dialog before performing network call to avoid context across await
+                                    Navigator.of(dialogCtx).pop();
+
+                                    // perform Supabase update in background
+
+                                    final supabase = Supabase.instance.client;
+                                    await supabase
+                                        .from('budgetgoals')
+                                        .update({
+                                          goalKey: parsedGoal,
+                                          'category': newCategory,
+                                          'name': newName,
+                                        })
+                                        .eq('id', idInt);
+                                  },
+                                  child: const Text('Save'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
                     ),
                     const SizedBox(width: 8),
                     if (!_showConfirm)
