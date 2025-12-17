@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spezza/theme_provider.dart';
 import 'package:spezza/view/screens/graphic_overview_screen.dart';
 
+import 'home.dart';
+
 class Sidebar extends ConsumerWidget {
   const Sidebar({super.key});
 
@@ -19,6 +21,19 @@ class Sidebar extends ConsumerWidget {
               decoration: BoxDecoration(
                 color: Color(0xFF008000)
               ),
+          ),
+          ListTile(
+            leading: Icon(Icons.home),
+            title: Text('Página inicial'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => Home(),
+                ),
+              );
+            },
           ),
           ListTile(
             leading: Icon(Icons.pie_chart),
