@@ -247,7 +247,7 @@ class _HomePageState extends State<HomePage> {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: (_data.isEmpty)
-            ? const Center(child: Text('No budget goals found.'))
+            ? const Center(child: Text('Sem metas encontradas.'))
             : ListView.builder(
                 itemCount: _data.length,
                 itemBuilder: (context, index) {

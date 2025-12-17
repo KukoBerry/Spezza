@@ -9,16 +9,14 @@ class Sidebar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Drawer(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           UserAccountsDrawerHeader(
-              accountName: Text('Fulano'),
-              accountEmail: Text('fln.tal@mail.com'),
-              decoration: BoxDecoration(
-                color: Color(0xFF008000)
-              ),
+            accountName: Text('Fulano'),
+            accountEmail: Text('fln.tal@mail.com'),
+            decoration: BoxDecoration(color: Color(0xFF008000)),
           ),
           ListTile(
             leading: Icon(Icons.pie_chart),
@@ -50,9 +48,9 @@ class Sidebar extends ConsumerWidget {
             leading: Icon(Icons.logout),
             title: Text('Mudar de conta'),
             onTap: () => print('Bem intuitivo'),
-          )
+          ),
         ],
-      )
+      ),
     );
   }
 }
