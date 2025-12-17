@@ -8,4 +8,9 @@ CreateUserDto({
   required this.password,
   this.name
 });
+
+Map<String, dynamic> toMap(){
+  return {'email': email, 'name': name};
+}
+  
 }
