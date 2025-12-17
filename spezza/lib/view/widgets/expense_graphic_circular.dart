@@ -42,7 +42,7 @@ class _ExpenseGraphicCircularState extends State<ExpenseGraphicCircular> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 4),
-             Text(
+            Text(
               'Top 10 categorias',
               style: TextStyle(fontSize: 12, color: textColor),
             ),
@@ -54,8 +54,9 @@ class _ExpenseGraphicCircularState extends State<ExpenseGraphicCircular> {
                   PieSeries<ChartData, String>(
                     onPointTap: (ChartPointDetails details) {
                       setState(() {
-                        _selectedIndex =
-                        _selectedIndex == details.pointIndex ? null : details.pointIndex;
+                        _selectedIndex = _selectedIndex == details.pointIndex
+                            ? null
+                            : details.pointIndex;
                       });
                     },
                     pointColorMapper: (ChartData data, int index) {

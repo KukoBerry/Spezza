@@ -17,6 +17,26 @@ class ExpenseRepository {
 
     return results.map((map) => Expense.fromMap(map)).toList();
   }
+
+  Future<void> updateExpense(Expense expense) async {
+    await _supabase
+        .from('expenses')
+        .update(expense.toMap())
+        .eq('id', expense.id!);
+  }
+
+  Future<void> deleteExpense(int id) async {
+    await _supabase
+        .from('expenses')
+        .delete()
+        .eq('id', id);
+  }
+
+  Future<void> addExpense(Expense expense) async {
+    await _supabase
+        .from('expenses')
+        .insert(expense.toMap());
+  }
 }
 
 @riverpod

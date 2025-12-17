@@ -1,39 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+import 'package:spezza/model/dto/expense.dart';
 import 'package:spezza/model/dto/goal_expense.dart';
 import 'package:spezza/view/widgets/progress_bar.dart';
+import 'package:intl/intl.dart';
 import 'package:spezza/view_model/graphic_overview_view_model.dart';
 
-class GoalProgress extends ConsumerWidget {
+class GoalProgress extends ConsumerStatefulWidget {
   final List<GoalExpense> goals;
+  final double progressValue;
+  final double totalGoalValue;
+  final double totalExpenseValue;
 
-  const GoalProgress(this.goals, {super.key});
+  const GoalProgress(
+    this.goals, {
+    required this.progressValue,
+    required this.totalGoalValue,
+    required this.totalExpenseValue,
+    super.key,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<GoalProgress> createState() => _GoalProgressState();
+}
+
+class _GoalProgressState extends ConsumerState<GoalProgress> {
+  bool isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final borderColor = isDark ? Colors.white70 : Colors.black26;
 
-    // compute totals here to keep the widget immutable
-    double totalGoal = 0.0;
-    double totalExpense = 0.0;
-    for (var goal in goals) {
-      totalGoal += goal.goal;
-      final goalExpensesTotal = goal.expenses.fold<double>(
-        0.0,
-        (previousValue, expense) => previousValue + expense.value,
-      );
-      totalExpense += goalExpensesTotal;
-    }
-
-    final progressValue = totalGoal == 0 ? 1.0 : (totalExpense / totalGoal);
-
     final spentByCategory = ref
         .read(graphicOverviewViewModelProvider.notifier)
-        .totalSpentInAGoal(goals);
-
-    final expanded = ref.watch(goalProgressExpandedProvider);
+        .totalSpentInAGoal(widget.goals);
 
     return Card(
       elevation: 0,
@@ -47,27 +48,23 @@ class GoalProgress extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Progresso das metas',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ],
+            const Text(
+              'Progresso das metas',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
 
             const SizedBox(height: 16),
-            ProgressBarCustom(progress: progressValue),
+            ProgressBarCustom(progress: widget.progressValue),
 
             Center(
               child: IconButton(
                 onPressed: () {
-                  // use the notifier method instead of manipulating state directly
-                  ref.read(goalProgressExpandedProvider.notifier).toggle();
+                  setState(() {
+                    isExpanded = !isExpanded;
+                  });
                 },
                 icon: AnimatedRotation(
-                  turns: expanded ? 0.5 : 0.0,
+                  turns: isExpanded ? 0.5 : 0.0,
                   duration: const Duration(milliseconds: 200),
                   child: Icon(Icons.expand_more, color: borderColor),
                 ),
@@ -77,7 +74,7 @@ class GoalProgress extends ConsumerWidget {
             AnimatedSize(
               duration: const Duration(milliseconds: 250),
               curve: Curves.easeInOut,
-              child: expanded
+              child: isExpanded
                   ? Column(
                       children: [
                         IndividualGoalProgress(
