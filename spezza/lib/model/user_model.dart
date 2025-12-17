@@ -17,8 +17,13 @@ class UserModel {
   }
 
   Future<bool> login(LoginDto dto) async {
-    bool succesfullLogin = await _repository.login(dto);
+    try{
+      bool succesfullLogin = await _repository.login(dto);
     return succesfullLogin;
+    } catch(_) {
+      return false;
+    }
+    
   }
 
   Future<int> getCurrentUserId() async {

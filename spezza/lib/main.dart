@@ -66,7 +66,7 @@ class MyApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: Home(),
+      home: LoginScreen(),
     );
   }
 }
