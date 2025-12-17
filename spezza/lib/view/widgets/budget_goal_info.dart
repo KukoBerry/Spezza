@@ -3,6 +3,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../model/dto/goal_expense.dart';
 import '../screens/expenses_list_view.dart';
+import './delete_goal_button.dart';
+import 'edit_goal_button.dart';
 
 /// Widget that displays information about a goal expense.
 ///
@@ -27,8 +29,6 @@ class BudgetGoalInfo extends StatefulWidget {
 }
 
 class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
-  bool _showConfirm = false;
-  bool _isDeleting = false;
   bool _isDeleted = false;
   double? _remoteSpent;
   bool _loadingRemoteSpent = false;
@@ -46,27 +46,14 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
   void _initRemoteSpent() {
     final idVal = widget.goal?.id ?? widget.data?['id'];
     int? idInt;
-    if (idVal is int) {
-      idInt = idVal;
-    } else if (idVal is String) {
-      idInt = int.tryParse(idVal);
-    }
+    idInt = idVal;
+
     // initialize local display values from provided data
-    if (widget.goal != null) {
-      _localGoal = widget.goal!.goal;
-      _localCategory = widget.goal!.category;
-      _localName = widget.goal!.name;
-    } else if (widget.data != null) {
-      final src = widget.data!;
-      final parsedGoal = src['goalexpense'] ?? src['goal'];
-      if (parsedGoal != null) {
-        try {
-          _localGoal = (parsedGoal as num).toDouble();
-        } catch (_) {}
-      }
-      _localCategory = src['category']?.toString();
-      _localName = src['name']?.toString();
-    }
+    final src = widget.data!;
+    final parsedGoal = src['goalexpense'] ?? src['goal'];
+    _localGoal = (parsedGoal as num).toDouble();
+    _localCategory = src['category']?.toString();
+    _localName = src['name']?.toString();
     if (idInt != null) _fetchRemoteSpent(idInt);
   }
 
@@ -98,35 +85,22 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
   }
 
   DateTime? _parseCreatedAt(Map<String, dynamic> map) {
-    final raw = map['created_at'] ?? map['createdAt'];
-    if (raw == null) return null;
-    if (raw is DateTime) return raw.toLocal();
-    try {
-      return DateTime.parse(raw.toString()).toLocal();
-    } catch (_) {
-      return null;
-    }
+    final raw = map['created_at'];
+    return DateTime.parse(raw.toString()).toLocal();
   }
 
   double? _parseGoal(Map<String, dynamic> map) {
-    final raw = map['goalexpense'] ?? map['goal'] ?? map['goalExpense'];
-    if (raw == null) return null;
+    final raw = map['goalexpense'];
     return (raw as num).toDouble();
   }
 
   int? _parseDays(Map<String, dynamic> map) {
-    final raw =
-        map['daysperiod'] ??
-        map['days_period'] ??
-        map['periodInDays'] ??
-        map['period_in_days'];
-    if (raw == null) return null;
+    final raw = map['daysperiod'];
     return (raw is int) ? raw : int.tryParse(raw.toString());
   }
 
   String? _parseString(Map<String, dynamic> map, String key) {
-    final raw = map[key] ?? map[key.toLowerCase()];
-    if (raw == null) return null;
+    final raw = map[key];
     return raw.toString();
   }
 
@@ -134,27 +108,22 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
   Widget build(BuildContext context) {
     // Collect source map
     final Map<String, dynamic> src = {};
-    if (widget.goal != null) {
-      src['created_at'] = widget.goal!.createdAt;
-      src['goalexpense'] = widget.goal!.goal;
-      src['daysperiod'] = widget.goal!.periodInDays;
-      src['category'] = widget.goal!.category;
-      src['name'] = widget.goal!.name;
-    } else if (widget.data != null) {
-      src.addAll(widget.data!);
-    }
 
-    final createdAt = widget.goal?.createdAt ?? _parseCreatedAt(src);
-    final goalAmount = _localGoal ?? widget.goal?.goal ?? _parseGoal(src);
-    final days = widget.goal?.periodInDays ?? _parseDays(src) ?? 0;
-    final category =
-        _localCategory ??
-        widget.goal?.category ??
-        _parseString(src, 'category') ??
-        '-';
-    final name =
-        _localName ?? widget.goal?.name ?? _parseString(src, 'name') ?? '-';
-    final id = widget.goal?.id ?? (src['id'].toString());
+    src.addAll(widget.data!);
+
+    final createdAt = _parseCreatedAt(src);
+    final goalAmount = _parseGoal(src);
+    final days = _parseDays(src) ?? 0;
+    final category = _localCategory ?? _parseString(src, 'category') ?? '-';
+    final name = _localName ?? _parseString(src, 'name') ?? '-';
+
+    final idVal = src['id'];
+    int? idInt;
+    if (idVal is int) {
+      idInt = idVal;
+    } else {
+      idInt = int.tryParse(idVal?.toString() ?? '');
+    }
 
     // Build UI to match provided design: rounded green card, date range and percent on top,
     // a two-color progress bar (spent = red, remaining = green), amounts centered, and category below.
@@ -162,41 +131,12 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
 
     // calculate dates
     final start = createdAt;
-    final end = (createdAt != null)
-        ? createdAt.add(Duration(days: days))
-        : null;
-
-    // ensure remote spent is fetched (initState triggers fetch when possible)
-    if (_remoteSpent == null && !_loadingRemoteSpent) {
-      final idVal = id;
-      int? idInt;
-      if (idVal is int) {
-        idInt = idVal;
-      } else if (idVal is String) {
-        idInt = int.tryParse(idVal);
-      }
-      if (idInt != null) _fetchRemoteSpent(idInt);
-    }
+    final end = createdAt!.add(Duration(days: days));
 
     // compute local fallback spent from embedded expenses if present
-    double computeLocalSpent(Map<String, dynamic> src) {
-      final raw = src['expenses'];
-      if (raw is List) {
-        double s = 0.0;
-        for (final e in raw) {
-          if (e is Map && e['value'] != null) {
-            try {
-              s += (e['value'] as num).toDouble();
-            } catch (_) {}
-          }
-        }
-        return s;
-      }
-      return 0.0;
-    }
 
-    final spent = _remoteSpent ?? computeLocalSpent(src);
-    final goal = goalAmount ?? 0.0;
+    final spent = _remoteSpent ?? 0.0;
+    final goal = _localGoal ?? (goalAmount ?? 0.0);
     final percent = (goal > 0) ? (spent / goal) : 0.0;
 
     String formatShortDate(DateTime d) =>
@@ -212,18 +152,10 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
 
     return GestureDetector(
       onTap: () {
-        final idVal = widget.goal?.id ?? src['id'];
-        int? idInt;
-        if (idVal is int) {
-          idInt = idVal;
-        } else if (idVal is String) {
-          idInt = int.tryParse(idVal);
-        }
         if (idInt != null) {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) =>
-                  ExpensesListView(goalId: idInt as int, name: name),
+              builder: (_) => ExpensesListView(goalId: idInt!, name: name),
             ),
           );
         }
@@ -259,7 +191,7 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
               children: [
                 Flexible(
                   child: Text(
-                    (start == null || end == null)
+                    (start == null)
                         ? '-'
                         : '${formatShortDate(start)} - ${formatShortDate(end)}',
                     style: const TextStyle(color: Colors.white, fontSize: 12),
@@ -273,226 +205,30 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
                       style: const TextStyle(color: Colors.white, fontSize: 12),
                     ),
                     const SizedBox(width: 8),
-                    // edit button
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      icon: const Icon(
-                        Icons.edit,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                      onPressed: () async {
-                        final goalController = TextEditingController(
-                          text: (goalAmount ?? 0).toString(),
-                        );
-                        final categoryController = TextEditingController(
-                          text: category == '-' ? '' : category,
-                        );
-                        final nameController = TextEditingController(
-                          text: name == '-' ? '' : name,
-                        );
-                        final formKey = GlobalKey<FormState>();
-
-                        await showDialog<void>(
-                          context: context,
-                          builder: (dialogCtx) {
-                            return AlertDialog(
-                              title: const Text('Editar meta'),
-                              content: Form(
-                                key: formKey,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    TextFormField(
-                                      controller: nameController,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Nome',
-                                      ),
-                                    ),
-                                    TextFormField(
-                                      controller: categoryController,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Categoria',
-                                      ),
-                                    ),
-                                    TextFormField(
-                                      controller: goalController,
-                                      keyboardType:
-                                          const TextInputType.numberWithOptions(
-                                            decimal: true,
-                                          ),
-                                      decoration: const InputDecoration(
-                                        labelText: 'Valor',
-                                      ),
-                                      validator: (v) {
-                                        if (v == null || v.trim().isEmpty) {
-                                          return 'Required';
-                                        }
-                                        if (double.tryParse(
-                                              v.replaceAll(',', '.'),
-                                            ) ==
-                                            null) {
-                                          return 'Invalid number';
-                                        }
-                                        return null;
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.of(dialogCtx).pop(),
-                                  child: const Text('Cancelar'),
-                                ),
-                                TextButton(
-                                  onPressed: () async {
-                                    if (!formKey.currentState!.validate()) {
-                                      return;
-                                    }
-
-                                    final parsedGoal =
-                                        double.tryParse(
-                                          goalController.text.replaceAll(
-                                            ',',
-                                            '.',
-                                          ),
-                                        ) ??
-                                        0.0;
-                                    final newCategory = categoryController.text
-                                        .trim();
-                                    final newName = nameController.text.trim();
-
-                                    // determine id as int
-                                    final idVal = widget.goal?.id ?? src['id'];
-                                    int? idInt;
-                                    if (idVal is int) {
-                                      idInt = idVal;
-                                    } else if (idVal is String) {
-                                      idInt = int.tryParse(idVal);
-                                    }
-                                    if (idInt == null) return;
-
-                                    // choose DB key name for goal
-                                    final goalKey =
-                                        src.containsKey('goalexpense')
-                                        ? 'goalexpense'
-                                        : 'goal';
-
-                                    // update UI immediately
-                                    setState(() {
-                                      _localGoal = parsedGoal;
-                                      _localCategory = newCategory.isEmpty
-                                          ? null
-                                          : newCategory;
-                                      _localName = newName.isEmpty
-                                          ? null
-                                          : newName;
-                                    });
-                                    // close dialog before performing network call to avoid context across await
-                                    Navigator.of(dialogCtx).pop();
-
-                                    // perform Supabase update in background
-
-                                    final supabase = Supabase.instance.client;
-                                    await supabase
-                                        .from('budgetgoals')
-                                        .update({
-                                          goalKey: parsedGoal,
-                                          'category': newCategory,
-                                          'name': newName,
-                                        })
-                                        .eq('id', idInt);
-                                  },
-                                  child: const Text('Salvar'),
-                                ),
-                              ],
-                            );
-                          },
-                        );
+                    EditGoalButton(
+                      goalAmount: _localGoal ?? goalAmount!,
+                      category: category,
+                      name: name,
+                      src: src,
+                      onSaved: (g, c, n) {
+                        setState(() {
+                          _localGoal = g;
+                          _localCategory = c.isEmpty ? null : c;
+                          _localName = n.isEmpty ? null : n;
+                        });
                       },
                     ),
                     const SizedBox(width: 8),
-                    if (!_showConfirm)
-                      IconButton(
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        icon: const Icon(
-                          Icons.delete,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                        onPressed: () {
+                    if (idInt != null)
+                      DeleteGoalButton(
+                        id: idInt,
+                        onDeleted: () {
+                          if (!mounted) return;
                           setState(() {
-                            _showConfirm = true;
+                            _isDeleted = true;
                           });
                         },
-                      )
-                    else
-                      _isDeleting
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // deny
-                                IconButton(
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                  icon: const Icon(
-                                    Icons.close,
-                                    color: Colors.white,
-                                    size: 18,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _showConfirm = false;
-                                    });
-                                  },
-                                ),
-                                const SizedBox(width: 8),
-                                // confirm
-                                IconButton(
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                  icon: Icon(
-                                    Icons.check,
-                                    color: Colors.white,
-                                    size: 18,
-                                  ),
-                                  onPressed: () async {
-                                    setState(() {
-                                      _isDeleting = true;
-                                    });
-                                    try {
-                                      final supabase = Supabase.instance.client;
-                                      await supabase
-                                          .from('budgetgoals')
-                                          .delete()
-                                          .eq('id', id);
-                                      if (!mounted) return;
-                                      setState(() {
-                                        _isDeleted = true;
-                                      });
-                                    } catch (e) {
-                                      if (!mounted) return;
-                                      setState(() {
-                                        _isDeleting = false;
-                                        _showConfirm = false;
-                                      });
-                                    }
-                                  },
-                                ),
-                              ],
-                            ),
+                      ),
                   ],
                 ),
               ],
