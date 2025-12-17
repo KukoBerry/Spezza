@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spezza/shared/repositories/goal_repository.dart';
 
-class DeleteGoalButton extends StatefulWidget {
+class DeleteGoalButton extends ConsumerStatefulWidget {
   final int id;
   final VoidCallback onDeleted;
 
@@ -12,10 +13,10 @@ class DeleteGoalButton extends StatefulWidget {
   });
 
   @override
-  State<DeleteGoalButton> createState() => _DeleteGoalButtonState();
+  ConsumerState<DeleteGoalButton> createState() => _DeleteGoalButtonState();
 }
 
-class _DeleteGoalButtonState extends State<DeleteGoalButton> {
+class _DeleteGoalButtonState extends ConsumerState<DeleteGoalButton> {
   bool _showConfirm = false;
   bool _isDeleting = false;
 
@@ -55,8 +56,8 @@ class _DeleteGoalButtonState extends State<DeleteGoalButton> {
           onPressed: () async {
             setState(() => _isDeleting = true);
             try {
-              final supabase = Supabase.instance.client;
-              await supabase.from('budgetgoals').delete().eq('id', widget.id);
+              // Use repository to delete
+              await ref.read(goalRepositoryProvider).deleteGoal(widget.id);
               if (!mounted) return;
               widget.onDeleted();
             } catch (_) {

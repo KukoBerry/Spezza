@@ -1,7 +1,7 @@
-import 'package:spezza/model/dto/goal_expense.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:spezza/model/dto/goal_expense.dart';
 import 'package:spezza/shared/supabase_config/supabase_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 part 'goal_repository.g.dart';
 
@@ -11,9 +11,7 @@ class GoalRepository {
   GoalRepository(this._supabase);
 
   Future<List<GoalExpense>> fetchGoals() async {
-    final results = await _supabase
-        .from('budgetgoals')
-        .select('''
+    final results = await _supabase.from('budgetgoals').select('''
         *,
         expenses:expenses!budgetgoal_id (
           id,
@@ -26,31 +24,19 @@ class GoalRepository {
         )
       ''');
 
-    return results
-        .map<GoalExpense>(
-          (map) => GoalExpense.fromMap(map),
-    )
-        .toList();
+    return results.map<GoalExpense>((map) => GoalExpense.fromMap(map)).toList();
   }
 
   Future<void> addGoal(GoalExpense goal) async {
-    await _supabase
-        .from('budgetgoals')
-        .insert(goal.toMap());
+    await _supabase.from('budgetgoals').insert(goal.toMap());
   }
 
   Future<void> updateGoal(GoalExpense goal) async {
-    await _supabase
-        .from('budgetgoals')
-        .update(goal.toMap())
-        .eq('id', goal.id!);
+    await _supabase.from('budgetgoals').update(goal.toMap()).eq('id', goal.id!);
   }
 
   Future<void> deleteGoal(int id) async {
-    await _supabase
-        .from('budgetgoals')
-        .delete()
-        .eq('id', id);
+    await _supabase.from('budgetgoals').delete().eq('id', id);
   }
 }
 

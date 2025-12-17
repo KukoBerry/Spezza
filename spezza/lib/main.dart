@@ -3,12 +3,12 @@ import 'package:spezza/home.dart';
 import 'package:spezza/model/dto/goal_expense.dart';
 import 'package:spezza/model/goal_expense_model.dart';
 import 'package:spezza/shared/repositories/goal_repository.dart';
+import 'package:spezza/shared/supabase_config/supabase_credentials.dart';
 import 'package:spezza/sidebar.dart';
 import 'package:spezza/theme_provider.dart';
 import 'package:spezza/view_model/home_view_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:spezza/shared/supabase_config/supabase_credentials.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spezza/home.dart';
+import 'package:spezza/main.dart';
 import 'package:spezza/theme_provider.dart';
 import 'package:spezza/view/screens/graphic_overview_screen.dart';
-
-import 'home.dart';
 
 class Sidebar extends ConsumerWidget {
   const Sidebar({super.key});
@@ -27,9 +27,7 @@ class Sidebar extends ConsumerWidget {
               Navigator.pop(context);
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => Home(),
-                ),
+                MaterialPageRoute(builder: (_) => Home()),
               );
             },
           ),
