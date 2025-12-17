@@ -78,6 +78,7 @@ class HomePage extends ConsumerStatefulWidget {
 class _HomePageState extends ConsumerState<HomePage> {
   List<GoalExpense> _goals = [];
   bool _saving = false;
+  bool _loading = false;
 
   @override
   void initState() {
@@ -86,11 +87,16 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _loadGoals() async {
+    setState(() => _loading = true);
     try {
       final list = await ref.read(goalRepositoryProvider).fetchGoals();
       if (!mounted) return;
       setState(() => _goals = list);
-    } catch (_) {}
+    } catch (_) {
+      // ignore errors for now
+    }
+    if (!mounted) return;
+    setState(() => _loading = false);
   }
 
   Future<void> _showCreateDialog() async {
@@ -220,15 +226,17 @@ class _HomePageState extends ConsumerState<HomePage> {
       appBar: AppBar(title: const Text('Spezza')),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: (_goals.isEmpty)
-            ? const Center(child: Text('Sem metas encontradas.'))
-            : ListView.builder(
-                itemCount: _goals.length,
-                itemBuilder: (context, index) {
-                  final item = _goals[index];
-                  return BudgetGoalInfo(goal: item);
-                },
-              ),
+        child: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : (_goals.isEmpty
+                  ? const Center(child: Text('Sem metas encontradas.'))
+                  : ListView.builder(
+                      itemCount: _goals.length,
+                      itemBuilder: (context, index) {
+                        final item = _goals[index];
+                        return BudgetGoalInfo(goal: item);
+                      },
+                    )),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showCreateDialog,
