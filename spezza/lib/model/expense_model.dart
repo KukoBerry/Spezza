@@ -13,6 +13,24 @@ class ExpenseModel {
 
   List<Expense> get expense => List.unmodifiable(_expenses);
 
+  Future<void> deleteExpense(int id) async {
+    try {
+      await _repository.deleteExpense(id);
+    } catch (_) {}
+  }
+
+  Future<void> addExpense(Expense expense) async {
+    try {
+      await _repository.addExpense(expense);
+    } catch (_) {}
+  }
+
+  Future<void> updateExpense(Expense expense) async {
+    try {
+      await _repository.updateExpense(expense);
+    } catch (_) {}
+  }
+
   Future<void> fetchExpenses() async {
     try {
       final result = await _repository.fetchExpenses();
@@ -70,8 +88,6 @@ class ExpenseModel {
     }).toList();
   }
 
-
-
   Map<String, double> totalExpensesByCategory() {
     final Map<String, double> totals = {};
 
@@ -86,22 +102,17 @@ class ExpenseModel {
   Map<int, double> totalExpensesByLastWeeks(
     List<Expense> expenses, {
     int weeksBack = 2,
-        DateTime? startDate,
+    DateTime? startDate,
     DateTime? endDate,
   }) {
     final end = endDate ?? DateTime.now();
     final start = startDate ?? end.subtract(Duration(days: weeksBack * 7));
-    final Map<int, double> totals = createMap(
-      weeksBack,
-      8,
-      weeksBack,
-    );
+    final Map<int, double> totals = createMap(weeksBack, 8, weeksBack);
 
     for (var expense in expenses) {
       final date = expense.spentDate;
 
-      if (date.isBefore(start) ||
-          date.isAfter(end)) {
+      if (date.isBefore(start) || date.isAfter(end)) {
         continue;
       }
 
@@ -110,8 +121,7 @@ class ExpenseModel {
       final weekIndex = (daysDiff ~/ 7) + 1;
 
       if (weekIndex < weeksBack) {
-        totals[weekIndex] =
-            (totals[weekIndex] ?? 0) + expense.value;
+        totals[weekIndex] = (totals[weekIndex] ?? 0) + expense.value;
       }
     }
 
@@ -121,24 +131,18 @@ class ExpenseModel {
   Map<int, double> totalExpensesByLastYears(
     List<Expense> expenses, {
     int yearsBack = 2,
-        DateTime? startDate,
+    DateTime? startDate,
     DateTime? endDate,
   }) {
     final end = endDate ?? DateTime.now();
-    final start =
-        startDate ?? DateTime(end.year - yearsBack, 1, 1);
+    final start = startDate ?? DateTime(end.year - yearsBack, 1, 1);
 
-    final Map<int, double> totals = createMap(
-        end.year,
-        12,
-        yearsBack
-    );
+    final Map<int, double> totals = createMap(end.year, 12, yearsBack);
 
     for (var expense in expenses) {
       final yearKey = expense.spentDate.year;
 
-      if (expense.spentDate.isBefore(start) ||
-          expense.spentDate.isAfter(end)) {
+      if (expense.spentDate.isBefore(start) || expense.spentDate.isAfter(end)) {
         continue;
       }
 
@@ -151,23 +155,18 @@ class ExpenseModel {
   Map<int, double> totalExpensesInLastTwelveMonths(
     List<Expense> expenses, {
     int monthsBack = 11,
-        DateTime? startDate,
-        DateTime? endDate,
+    DateTime? startDate,
+    DateTime? endDate,
   }) {
     final end = endDate ?? DateTime.now();
     final start = startDate ?? DateTime(end.year, end.month - monthsBack, 1);
 
-    final Map<int, double> totals = createMap(
-      end.month,
-      12,
-      monthsBack,
-    );
+    final Map<int, double> totals = createMap(end.month, 12, monthsBack);
 
     for (var expense in expenses) {
       final monthKey = expense.spentDate.month;
 
-      if (expense.spentDate.isBefore(start) ||
-          expense.spentDate.isAfter(end)) {
+      if (expense.spentDate.isBefore(start) || expense.spentDate.isAfter(end)) {
         continue;
       }
 

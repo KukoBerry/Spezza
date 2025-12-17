@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class ExpensesListView extends StatefulWidget {
   final int goalId;
   final String name;
+
   const ExpensesListView({super.key, required this.goalId, required this.name});
 
   @override
@@ -29,7 +30,6 @@ class _ExpensesListViewState extends State<ExpensesListView> {
           .select()
           .eq('budgetgoal_id', widget.goalId);
 
-      // Print the raw result to prove fetching works
 
       if (!mounted) return;
       final list = <Map<String, dynamic>>[];

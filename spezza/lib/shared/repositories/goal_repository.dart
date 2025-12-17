@@ -26,13 +26,31 @@ class GoalRepository {
         )
       ''');
 
-    //print(results);
-
     return results
         .map<GoalExpense>(
           (map) => GoalExpense.fromMap(map),
     )
         .toList();
+  }
+
+  Future<void> addGoal(GoalExpense goal) async {
+    await _supabase
+        .from('budgetgoals')
+        .insert(goal.toMap());
+  }
+
+  Future<void> updateGoal(GoalExpense goal) async {
+    await _supabase
+        .from('budgetgoals')
+        .update(goal.toMap())
+        .eq('id', goal.id!);
+  }
+
+  Future<void> deleteGoal(int id) async {
+    await _supabase
+        .from('budgetgoals')
+        .delete()
+        .eq('id', id);
   }
 }
 
