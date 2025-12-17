@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:spezza/home.dart';
+import 'package:spezza/login.dart';
 import 'package:spezza/model/dto/goal_expense.dart';
 import 'package:spezza/shared/repositories/goal_repository.dart';
 import 'package:spezza/sidebar.dart';
@@ -89,7 +90,7 @@ class MyApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: HomePage(initialData: initialData),
+      home: LoginScreen(),
     );
   }
 }
