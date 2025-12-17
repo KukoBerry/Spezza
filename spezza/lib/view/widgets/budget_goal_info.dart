@@ -298,12 +298,24 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
                           context: context,
                           builder: (dialogCtx) {
                             return AlertDialog(
-                              title: const Text('Edit goal'),
+                              title: const Text('Editar meta'),
                               content: Form(
                                 key: formKey,
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
+                                    TextFormField(
+                                      controller: nameController,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Nome',
+                                      ),
+                                    ),
+                                    TextFormField(
+                                      controller: categoryController,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Categoria',
+                                      ),
+                                    ),
                                     TextFormField(
                                       controller: goalController,
                                       keyboardType:
@@ -311,7 +323,7 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
                                             decimal: true,
                                           ),
                                       decoration: const InputDecoration(
-                                        labelText: 'Goal amount',
+                                        labelText: 'Valor',
                                       ),
                                       validator: (v) {
                                         if (v == null || v.trim().isEmpty) {
@@ -326,18 +338,6 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
                                         return null;
                                       },
                                     ),
-                                    TextFormField(
-                                      controller: categoryController,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Category',
-                                      ),
-                                    ),
-                                    TextFormField(
-                                      controller: nameController,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Name',
-                                      ),
-                                    ),
                                   ],
                                 ),
                               ),
@@ -345,7 +345,7 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
                                 TextButton(
                                   onPressed: () =>
                                       Navigator.of(dialogCtx).pop(),
-                                  child: const Text('Cancel'),
+                                  child: const Text('Cancelar'),
                                 ),
                                 TextButton(
                                   onPressed: () async {
@@ -406,7 +406,7 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
                                         })
                                         .eq('id', idInt);
                                   },
-                                  child: const Text('Save'),
+                                  child: const Text('Salvar'),
                                 ),
                               ],
                             );
