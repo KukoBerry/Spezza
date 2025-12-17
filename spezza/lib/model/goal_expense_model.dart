@@ -13,6 +13,25 @@ class GoalExpenseModel {
   final List<GoalExpense> _goals = [];
   final List<String> _categories = ['Tudo'];
 
+  Future<void> deleteGoal(int id) async {
+    try {
+      await _repository.deleteGoal(id);
+    } catch (_) {}
+  }
+
+  Future<void> addGoal(GoalExpense goal) async {
+    try {
+      await _repository.addGoal(goal);
+    } catch (_) {
+    }
+  }
+
+  Future<void> updateGoal(GoalExpense goal) async {
+    try {
+      await _repository.updateGoal(goal);
+    } catch (_) {}
+  }
+
   List<String> get categories => List.unmodifiable(_categories);
 
   List<GoalExpense> get goals => List.unmodifiable(_goals);
@@ -25,15 +44,17 @@ class GoalExpenseModel {
         ..addAll(result);
 
       setCategories(result);
-
-    } catch (_) {}
+    } catch (_) {
+    }
   }
 
   void setCategories(List<GoalExpense> goals) {
     final categorySet = <String>{'Tudo'};
 
     for (var goal in goals) {
-      categorySet.add(goal.category!);
+      if (!categorySet.contains(goal.category!.toLowerCase())) {
+        categorySet.add(goal.category!);
+      }
     }
 
     _categories
@@ -49,14 +70,11 @@ class GoalExpenseModel {
     return _goals.where((goal) {
       final createdAt = goal.createdAt;
 
-      final startMatch =
-          !createdAt.isBefore(startDate);
+      final startMatch = !createdAt.isBefore(startDate);
 
-      final endMatch =
-          !createdAt.isAfter(endDate);
+      final endMatch = !createdAt.isAfter(endDate);
 
-      final categoryMatch =
-          goal.category == category;
+      final categoryMatch = goal.category == category;
 
       return startMatch && endMatch && categoryMatch;
     }).toList();

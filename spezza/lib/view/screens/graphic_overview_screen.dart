@@ -103,6 +103,29 @@ class _GraphicOverviewScreenState extends ConsumerState<GraphicOverviewScreen> {
     });
   }
 
+  GoalProgress getGoalProgress(List<GoalExpense> goals) {
+    double totalGoal = 0;
+    double totalExpense = 0;
+
+    for (var goal in goals) {
+      totalGoal += goal.goal;
+
+      double goalExpensesTotal = goal.expenses.fold(
+        0.0,
+        (previousValue, expense) => previousValue + expense.value,
+      );
+
+      totalExpense += goalExpensesTotal;
+    }
+    double progressValue = totalGoal == 0 ? 1 : (totalExpense / totalGoal);
+    return GoalProgress(
+      goals,
+      totalGoalValue: totalGoal,
+      totalExpenseValue: totalExpense,
+      progressValue: progressValue,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(graphicOverviewViewModelProvider);
@@ -227,7 +250,7 @@ class _GraphicOverviewScreenState extends ConsumerState<GraphicOverviewScreen> {
                                             title: 'METAS',
                                             values: filteredGoals,
                                             icon: const Icon(
-                                              Icons.savings,
+                                              Icons.flag,
                                               color: Color(0xFF008000),
                                             ),
                                           ),
@@ -250,7 +273,7 @@ class _GraphicOverviewScreenState extends ConsumerState<GraphicOverviewScreen> {
                                               totalExpensesByCategory:
                                                   totalExpensesByCategory,
                                             )
-                                          : GoalProgress(filteredGoals),
+                                          : getGoalProgress(filteredGoals),
 
                                       const SizedBox(height: 16),
 

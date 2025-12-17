@@ -56,10 +56,9 @@ class GraphicOverviewViewModel extends _$GraphicOverviewViewModel {
     if (category == 'Tudo') {
       return _goalModel.goals.where((goal) {
         final createdAt = goal.createdAt;
-        final endDate = goal.createdAt.add(Duration(days: goal.periodInDays));
 
         final startMatch = !createdAt.isBefore(start);
-        final endMatch = !endDate.isAfter(end);
+        final endMatch = !createdAt.isAfter(end);
 
         return startMatch && endMatch;
       }).toList();
@@ -72,9 +71,7 @@ class GraphicOverviewViewModel extends _$GraphicOverviewViewModel {
     );
   }
 
-  Map<String, (double, double)> totalSpentInAGoal(
-    List<GoalExpense> goals
-  ) {
+  Map<String, (double, double)> totalSpentInAGoal(List<GoalExpense> goals) {
     final Map<String, (double, double)> goalsMap = {};
     bool hasAdded = false;
 
@@ -97,8 +94,10 @@ class GraphicOverviewViewModel extends _$GraphicOverviewViewModel {
       final currentGoal = goalsMap[goal.name ?? 'Sem nome'];
 
       if (currentGoal != null) {
-        goalsMap[goal.name ?? 'Sem nome'] =
-            (currentGoal.$1, currentGoal.$2 + totalSpent);
+        goalsMap[goal.name ?? 'Sem nome'] = (
+          currentGoal.$1,
+          currentGoal.$2 + totalSpent,
+        );
       }
     }
 
@@ -116,15 +115,14 @@ class GraphicOverviewViewModel extends _$GraphicOverviewViewModel {
       for (final expense in goal.expenses) {
         final expenseDate = expense.spentDate;
 
-        if (!expenseDate.isBefore(start) &&
-            !expenseDate.isAfter(end)) {
+        if (!expenseDate.isBefore(start) && !expenseDate.isAfter(end)) {
           expensesInPeriod.add(expense);
         }
       }
     }
 
     return expensesInPeriod;
-}
+  }
 
   List<Expense> filteredExpenses({
     required DateTime start,
@@ -367,19 +365,15 @@ class GraphicOverviewViewModel extends _$GraphicOverviewViewModel {
   }
 
   Map<String, List<ChartData>> allExpensesByPeriods(
-      List<String> categories,
-      GraphicOverviewPeriod period,
-      DateTime start,
-      DateTime end,
-      ) {
+    List<String> categories,
+    GraphicOverviewPeriod period,
+    DateTime start,
+    DateTime end,
+  ) {
     final Map<String, List<ChartData>> dataByCategory = {};
 
     if (categories.isNotEmpty && categories[0] == 'Tudo') {
-      final goals = filteredGoals(
-        start: start,
-        end: end,
-        category: 'Tudo',
-      );
+      final goals = filteredGoals(start: start, end: end, category: 'Tudo');
 
       final expenses = getAllExpensesInPeriod(
         filteredGoals: goals,
@@ -399,11 +393,7 @@ class GraphicOverviewViewModel extends _$GraphicOverviewViewModel {
     }
 
     for (final category in categories) {
-      final goals = filteredGoals(
-        start: start,
-        end: end,
-        category: category,
-      );
+      final goals = filteredGoals(start: start, end: end, category: category);
 
       final expenses = getAllExpensesInPeriod(
         filteredGoals: goals,

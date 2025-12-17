@@ -10,23 +10,6 @@ class GoalRepository {
 
   GoalRepository(this._supabase);
 
-  Future<void> deleteGoal(int id) async {
-    await _supabase.from('budgetgoals').delete().eq('id', id);
-  }
-
-  Future<void> updateGoal(int id, Map<String, dynamic> changes) async {
-    await _supabase.from('budgetgoals').update(changes).eq('id', id);
-  }
-
-  Future<dynamic> addGoal(Map<String, dynamic> payload) async {
-    final res = await _supabase.from('budgetgoals').insert(payload).select();
-    // `res` may be a PostgrestList at runtime; suppress unnecessary_type_check warning
-    // ignore: unnecessary_type_check
-    if (res is List && res.isNotEmpty) return res.first;
-    if (res is Map) return res;
-    return null;
-  }
-
   Future<List<GoalExpense>> fetchGoals() async {
     final results = await _supabase.from('budgetgoals').select('''
         *,
@@ -42,6 +25,18 @@ class GoalRepository {
       ''');
 
     return results.map<GoalExpense>((map) => GoalExpense.fromMap(map)).toList();
+  }
+
+  Future<void> addGoal(GoalExpense goal) async {
+    await _supabase.from('budgetgoals').insert(goal.toMap());
+  }
+
+  Future<void> updateGoal(GoalExpense goal) async {
+    await _supabase.from('budgetgoals').update(goal.toMap()).eq('id', goal.id!);
+  }
+
+  Future<void> deleteGoal(int id) async {
+    await _supabase.from('budgetgoals').delete().eq('id', id);
   }
 }
 
