@@ -16,8 +16,8 @@ class Sidebar extends ConsumerWidget {
         padding: EdgeInsets.zero,
         children: [
           UserAccountsDrawerHeader(
-            accountName: Text('Fulano'),
-            accountEmail: Text('fln.tal@mail.com'),
+            accountName: Text('Fabrício Silva'),
+            accountEmail: Text('fabricio@email.com'),
             decoration: BoxDecoration(color: Color(0xFF008000)),
           ),
           ListTile(
