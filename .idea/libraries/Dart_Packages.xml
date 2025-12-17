@@ -310,6 +310,13 @@
             </list>
           </value>
         </entry>
+        <entry key="flutter_localizations">
+          <value>
+            <list>
+              <option value="$USER_HOME$/Development/SDKs/flutter/packages/flutter_localizations/lib" />
+            </list>
+          </value>
+        </entry>
         <entry key="flutter_riverpod">
           <value>
             <list>
@@ -1243,6 +1250,7 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/yet_another_json_isolate-2.1.0/lib" />
       <root url="file://$USER_HOME$/Development/SDKs/flutter/bin/cache/pkg/sky_engine/lib" />
       <root url="file://$USER_HOME$/Development/SDKs/flutter/packages/flutter/lib" />
+      <root url="file://$USER_HOME$/Development/SDKs/flutter/packages/flutter_localizations/lib" />
       <root url="file://$USER_HOME$/Development/SDKs/flutter/packages/flutter_test/lib" />
       <root url="file://$USER_HOME$/Development/SDKs/flutter/packages/flutter_web_plugins/lib" />
     </CLASSES>

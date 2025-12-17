@@ -26,7 +26,7 @@ class GoalRepository {
         )
       ''');
 
-    print(results);
+    //print(results);
 
     return results
         .map<GoalExpense>(
