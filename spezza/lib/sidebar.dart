@@ -54,12 +54,6 @@ class Sidebar extends ConsumerWidget {
           ),
           Divider(),
           ListTile(
-            leading: Icon(Icons.settings),
-            title: Text('Configurações'),
-            onTap: () => {},
-          ),
-          Divider(),
-          ListTile(
             leading: Icon(Icons.logout),
             title: Text('Mudar de conta'),
             onTap: () => {},
