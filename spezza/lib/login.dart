@@ -1,37 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:spezza/main.dart';
+import 'package:spezza/model/dto/user/create_user_dto.dart';
+import 'package:spezza/model/dto/user/login_dto.dart';
+import 'package:spezza/model/user_model.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
-
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  String email = '';
-  String senha = '';
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool loginComSucesso = false;
   bool esconderSenha = true;
-
+  String email = "";
+  String password = "";
+  
   void validaLogin(){
-    if(email == "fabricio@email.com" && senha == "teste1234"){//IMPLEMENTAR CHECAGEM NO BANCO DE DADOS
-      setState(() {
-        loginComSucesso = true;
-      });
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
-    }else{
-      setState((){
-        loginComSucesso = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Combinação inválida de credenciais de login!'), backgroundColor: Colors.red),
-      );
-    }
+    final userProvider = ref.read(userModelProvider);
+    userProvider.login(LoginDto(email: email, password: password));
+    
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                         )
                     ),
-                    onChanged: (value) => senha = value
+                    onChanged: (value) => password = value
                 ),
                 TextButton(child: const Text("Criar conta no Spezza"), onPressed: () {}), //NAVEGAR PARA CADASTRO
                 const SizedBox(height: 10),
