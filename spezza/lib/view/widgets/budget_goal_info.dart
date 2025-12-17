@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../model/dto/goal_expense.dart';
 import '../screens/expenses_list_view.dart';
@@ -31,7 +30,6 @@ class BudgetGoalInfo extends StatefulWidget {
 class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
   bool _isDeleted = false;
   double? _remoteSpent;
-  // bool _loadingRemoteSpent = false;
   // Local editable state so UI updates immediately after editing
   double? _localGoal;
   String? _localCategory;
@@ -40,90 +38,36 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
   @override
   void initState() {
     super.initState();
-    _initRemoteSpent();
+    _initFromGoal();
   }
 
-  void _initRemoteSpent() {
-    final idVal = widget.goal?.id ?? widget.data?['id'];
-    int? idInt;
-    idInt = idVal;
+  void _initFromGoal() {
+    final g = widget.goal!;
+    _localGoal = g.goal;
+    _localCategory = g.category;
+    _localName = g.name;
 
-    // initialize local display values from provided data
-    final src = widget.data!;
-    final parsedGoal = src['goalexpense'] ?? src['goal'];
-    _localGoal = (parsedGoal as num).toDouble();
-    _localCategory = src['category']?.toString();
-    _localName = src['name']?.toString();
-    if (idInt != null) _fetchRemoteSpent(idInt);
-  }
-
-  Future<void> _fetchRemoteSpent(int id) async {
-    // setState(() => _loadingRemoteSpent = true);
-    try {
-      final supabase = Supabase.instance.client;
-      final res = await supabase
-          .from('expenses')
-          .select('value')
-          .eq('budgetgoal_id', id);
-      double sum = 0.0;
-      for (final e in res) {
-        if (e['value'] != null) {
-          try {
-            sum += (e['value'] as num).toDouble();
-          } catch (_) {}
-        }
-      }
-      if (!mounted) return;
-      setState(() {
-        _remoteSpent = sum;
-        // _loadingRemoteSpent = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      // setState(() => _loadingRemoteSpent = false);
+    // compute spent from embedded expenses (if any)
+    double sum = 0.0;
+    for (final e in g.expenses) {
+      try {
+        sum += e.value;
+      } catch (_) {}
     }
+    _remoteSpent = sum;
   }
 
-  DateTime? _parseCreatedAt(Map<String, dynamic> map) {
-    final raw = map['created_at'];
-    return DateTime.parse(raw.toString()).toLocal();
-  }
-
-  double? _parseGoal(Map<String, dynamic> map) {
-    final raw = map['goalexpense'];
-    return (raw as num).toDouble();
-  }
-
-  int? _parseDays(Map<String, dynamic> map) {
-    final raw = map['daysperiod'];
-    return (raw is int) ? raw : int.tryParse(raw.toString());
-  }
-
-  String? _parseString(Map<String, dynamic> map, String key) {
-    final raw = map[key];
-    return raw.toString();
-  }
+  // Using `GoalExpense` fields directly; helper methods removed.
 
   @override
   Widget build(BuildContext context) {
-    // Collect source map
-    final Map<String, dynamic> src = {};
-
-    src.addAll(widget.data!);
-
-    final createdAt = _parseCreatedAt(src);
-    final goalAmount = _parseGoal(src);
-    final days = _parseDays(src) ?? 0;
-    final category = _localCategory ?? _parseString(src, 'category') ?? '-';
-    final name = _localName ?? _parseString(src, 'name') ?? '-';
-
-    final idVal = src['id'];
-    int? idInt;
-    if (idVal is int) {
-      idInt = idVal;
-    } else {
-      idInt = int.tryParse(idVal?.toString() ?? '');
-    }
+    final g = widget.goal!;
+    final createdAt = g.createdAt;
+    final goalAmount = g.goal;
+    final days = g.periodInDays;
+    final category = _localCategory ?? g.category ?? '-';
+    final name = _localName ?? g.name ?? '-';
+    final idInt = g.id;
 
     // Build UI to match provided design: rounded green card, date range and percent on top,
     // a two-color progress bar (spent = red, remaining = green), amounts centered, and category below.
@@ -131,12 +75,12 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
 
     // calculate dates
     final start = createdAt;
-    final end = createdAt!.add(Duration(days: days));
+    final end = createdAt.add(Duration(days: days));
 
     // compute local fallback spent from embedded expenses if present
 
     final spent = _remoteSpent ?? 0.0;
-    final goal = _localGoal ?? (goalAmount ?? 0.0);
+    final goal = _localGoal ?? goalAmount;
     final percent = (goal > 0) ? (spent / goal) : 0.0;
 
     String formatShortDate(DateTime d) =>
@@ -152,13 +96,11 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
 
     return GestureDetector(
       onTap: () {
-        if (idInt != null) {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => ExpensesListView(goalId: idInt!, name: name),
-            ),
-          );
-        }
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ExpensesListView(goalId: idInt, name: name),
+          ),
+        );
       },
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
@@ -191,9 +133,7 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
               children: [
                 Flexible(
                   child: Text(
-                    (start == null)
-                        ? '-'
-                        : '${formatShortDate(start)} - ${formatShortDate(end)}',
+                    '${formatShortDate(start)} - ${formatShortDate(end)}',
                     style: const TextStyle(color: Colors.white, fontSize: 12),
                   ),
                 ),
@@ -206,10 +146,10 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
                     ),
                     const SizedBox(width: 8),
                     EditGoalButton(
-                      goalAmount: _localGoal ?? goalAmount!,
+                      goalAmount: _localGoal ?? goalAmount,
                       category: category,
                       name: name,
-                      src: src,
+                      goal: widget.goal!,
                       onSaved: (g, c, n) {
                         setState(() {
                           _localGoal = g;
@@ -219,16 +159,16 @@ class _BudgetGoalInfoState extends State<BudgetGoalInfo> {
                       },
                     ),
                     const SizedBox(width: 8),
-                    if (idInt != null)
-                      DeleteGoalButton(
-                        id: idInt,
-                        onDeleted: () {
-                          if (!mounted) return;
-                          setState(() {
-                            _isDeleted = true;
-                          });
-                        },
-                      ),
+
+                    DeleteGoalButton(
+                      id: idInt,
+                      onDeleted: () {
+                        if (!mounted) return;
+                        setState(() {
+                          _isDeleted = true;
+                        });
+                      },
+                    ),
                   ],
                 ),
               ],

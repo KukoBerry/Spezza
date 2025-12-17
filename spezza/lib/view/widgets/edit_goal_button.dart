@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:spezza/model/dto/goal_expense.dart';
+import 'package:spezza/shared/repositories/goal_repository.dart';
 
 /// Reusable edit button that opens a dialog to edit a goal's `goalexpense`, `category` and `name`.
 ///
 /// The widget accepts the current values and a `src` map (used to detect id and DB key).
-class EditGoalButton extends StatelessWidget {
+class EditGoalButton extends ConsumerWidget {
   final double goalAmount;
   final String category;
   final String name;
-  final Map<String, dynamic> src;
+  final GoalExpense goal;
   final void Function(double parsedGoal, String newCategory, String newName)?
   onSaved;
 
@@ -17,12 +19,11 @@ class EditGoalButton extends StatelessWidget {
     required this.goalAmount,
     required this.category,
     required this.name,
-    required this.src,
+    required this.goal,
     this.onSaved,
   });
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return IconButton(
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(),
@@ -97,31 +98,20 @@ class EditGoalButton extends StatelessWidget {
                     // close dialog before awaiting network
                     Navigator.of(dialogCtx).pop();
 
-                    // perform Supabase update in background
+                    // perform update via repository in background
                     try {
-                      final supabase = Supabase.instance.client;
                       // determine id
-                      final idVal = src['id'] ?? src['Id'] ?? src['ID'];
+                      final idVal = goal.id;
                       int? idInt;
-                      if (idVal is int) {
-                        idInt = idVal;
-                      } else if (idVal is String) {
-                        idInt = int.tryParse(idVal.toString());
-                      }
-                      if (idInt == null) return;
+                      idInt = idVal;
 
-                      final goalKey = src.containsKey('goalexpense')
-                          ? 'goalexpense'
-                          : 'goal';
+                      final goalKey = 'goalexpense';
 
-                      await supabase
-                          .from('budgetgoals')
-                          .update({
-                            goalKey: parsedGoal,
-                            'category': newCategory,
-                            'name': newName,
-                          })
-                          .eq('id', idInt);
+                      await ref.read(goalRepositoryProvider).updateGoal(idInt, {
+                        goalKey: parsedGoal,
+                        'category': newCategory,
+                        'name': newName,
+                      });
                     } catch (e) {
                       // ignore for now; parent may choose to handle failures
                     }

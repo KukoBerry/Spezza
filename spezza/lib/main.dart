@@ -1,50 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:spezza/home.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spezza/model/dto/goal_expense.dart';
 import 'package:spezza/shared/repositories/goal_repository.dart';
+import 'package:spezza/shared/supabase_config/supabase_credentials.dart';
 import 'package:spezza/sidebar.dart';
 import 'package:spezza/theme_provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:spezza/shared/supabase_config/supabase_credentials.dart';
 import 'package:spezza/view/widgets/budget_goal_info.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Function.apply(Supabase.initialize, [], supabaseOptions);
 
-  final supabase = Supabase.instance.client;
-
-  final data = await supabase.from('budgetgoals').select();
-
-  // Ensure deterministic ordering by created_at (oldest first). If created_at is missing or unparsable,
-  // those items will be placed at the end.
-  data.sort((a, b) {
-    dynamic va = (a['created_at'] ?? a['createdAt']);
-    dynamic vb = (b['created_at'] ?? b['createdAt']);
-    DateTime? da;
-    DateTime? db;
-    try {
-      if (va != null) da = DateTime.tryParse(va.toString());
-    } catch (_) {}
-    try {
-      if (vb != null) db = DateTime.tryParse(vb.toString());
-    } catch (_) {}
-    if (da == null && db == null) return 0;
-    if (da == null) return 1;
-    if (db == null) return -1;
-    return da.compareTo(db);
-  });
-
-  runApp(ProviderScope(child: MyApp(initialData: data)));
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends ConsumerWidget {
-  final List<dynamic>? initialData;
-
-  const MyApp({super.key, this.initialData});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -89,27 +63,34 @@ class MyApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: HomePage(initialData: initialData),
+      home: const HomePage(),
     );
   }
 }
 
-class HomePage extends StatefulWidget {
-  final List<dynamic>? initialData;
-  const HomePage({super.key, this.initialData});
+class HomePage extends ConsumerStatefulWidget {
+  const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  late List<dynamic> _data;
+class _HomePageState extends ConsumerState<HomePage> {
+  List<GoalExpense> _goals = [];
   bool _saving = false;
 
   @override
   void initState() {
     super.initState();
-    _data = (widget.initialData != null) ? List.from(widget.initialData!) : [];
+    _loadGoals();
+  }
+
+  Future<void> _loadGoals() async {
+    try {
+      final list = await ref.read(goalRepositoryProvider).fetchGoals();
+      if (!mounted) return;
+      setState(() => _goals = list);
+    } catch (_) {}
   }
 
   Future<void> _showCreateDialog() async {
@@ -181,7 +162,6 @@ class _HomePageState extends State<HomePage> {
 
                 setState(() => _saving = true);
 
-                final supabase = Supabase.instance.client;
                 final createdAt = DateTime.now().toUtc().toIso8601String();
                 final payload = {
                   'goalexpense': parsedGoal,
@@ -193,40 +173,31 @@ class _HomePageState extends State<HomePage> {
                 };
 
                 try {
-                  final res = await supabase
-                      .from('budgetgoals')
-                      .insert(payload)
-                      .select();
-                  dynamic inserted;
-                  if (res.isNotEmpty) {
-                    inserted = res.first;
-                  } else if (res is Map) {
-                    inserted = res;
-                  }
-
+                  final inserted = await ref
+                      .read(goalRepositoryProvider)
+                      .addGoal(payload);
                   if (inserted != null) {
-                    setState(() {
-                      _data.add(inserted);
-                      // keep deterministic ordering by created_at
-                      _data.sort((a, b) {
-                        final va = (a is Map)
-                            ? (a['created_at'] ?? a['createdAt'])
-                            : null;
-                        final vb = (b is Map)
-                            ? (b['created_at'] ?? b['createdAt'])
-                            : null;
-                        final da = va != null
-                            ? DateTime.tryParse(va.toString())
-                            : null;
-                        final db = vb != null
-                            ? DateTime.tryParse(vb.toString())
-                            : null;
-                        if (da == null && db == null) return 0;
-                        if (da == null) return 1;
-                        if (db == null) return -1;
-                        return da.compareTo(db);
-                      });
-                    });
+                    if (inserted is Map) {
+                      try {
+                        final created = GoalExpense.fromMap(
+                          Map<String, dynamic>.from(inserted),
+                        );
+                        setState(() => _goals.add(created));
+                      } catch (_) {
+                        await _loadGoals();
+                      }
+                    } else if (inserted is GoalExpense) {
+                      setState(() => _goals.add(inserted));
+                    } else {
+                      try {
+                        final created = GoalExpense.fromMap(
+                          Map<String, dynamic>.from(inserted as Map),
+                        );
+                        setState(() => _goals.add(created));
+                      } catch (_) {
+                        await _loadGoals();
+                      }
+                    }
                   }
                 } catch (e) {
                   // ignore for now
@@ -249,16 +220,13 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(title: const Text('Spezza')),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: (_data.isEmpty)
+        child: (_goals.isEmpty)
             ? const Center(child: Text('Sem metas encontradas.'))
             : ListView.builder(
-                itemCount: _data.length,
+                itemCount: _goals.length,
                 itemBuilder: (context, index) {
-                  final item = _data[index];
-                  final map = (item is Map)
-                      ? Map<String, dynamic>.from(item)
-                      : <String, dynamic>{};
-                  return BudgetGoalInfo(data: map);
+                  final item = _goals[index];
+                  return BudgetGoalInfo(goal: item);
                 },
               ),
       ),
